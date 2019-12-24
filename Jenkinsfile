@@ -8,7 +8,8 @@ pipeline {
     stages {
         stage('Build') { 
             steps {
-                sh 'mvn -B -Dhttps.protocols=TLSv1.2 -DskipTests clean package' 
+                //sh 'mvn -B -Dhttps.protocols=TLSv1.2 -DskipTests clean package' 
+				sh 'java -version'
             }
         }
         stage('Test') {
