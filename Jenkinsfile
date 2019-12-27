@@ -1,20 +1,27 @@
 pipeline {
     agent {
         docker {
-            image 'maven:3-alpine' 
-            args '-v /root/.m2:/root/.m2' 
+            image 'maven:3-alpine'
+            args '-v $HOME/.m2:/root/.m2'
+            reuseNode true
         }
     }
     stages {
-        stage('Build') { 
+        stage('Environment Setup') {
             steps {
-                //sh 'mvn -B -Dhttps.protocols=TLSv1.2 -DskipTests clean package' 
-				sh 'java -version'
+                sh 'export MAVEN_OPTS="-Dhttps.protocols=TLSv1.2 -Xmx2048m -Djava.net.preferIPv4Stack=true"'
+            }
+        }
+        stage('Build') {
+            steps {
+                retry(10) {
+                    sh 'mvn -Djavax.net.debug=all -X -e -DskipTests clean package spring-boot:repackage'
+                }
             }
         }
         stage('Test') {
             steps {
-                sh 'mvn test'
+                sh 'mvn -B clean test && mvn jacoco:report'
             }
             post {
                 always {
@@ -22,9 +29,9 @@ pipeline {
                 }
             }
         }
-        stage('Deliver') {
+        stage('Deploy') {
             steps {
-                sh './jenkins/scripts/deliver.sh'
+                sh 'echo deployment unimplemented'
             }
         }
     }
